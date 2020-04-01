@@ -116,6 +116,8 @@ class puppet_agent (
   $wait_for_pxp_agent_exit = undef,
 ) inherits ::puppet_agent::params {
 
+  notify {'puppet_agent - init': }
+
   if (getvar('::aio_agent_version') == undef) {
     fail('The puppet_agent module does not support pre-Puppet 4 upgrades.')
   }
@@ -128,10 +130,14 @@ class puppet_agent (
     validate_absolute_path($install_dir)
   }
 
+  notify {"puppet_agent - init - pe_server_version is set to ${::pe_server_version}": }
+  notify {"puppet_agent - init - package_version is set to ${package_version}": }
+
   if $package_version == undef {
     info('puppet_agent performs no actions if a package_version is not specified')
   } elsif defined('$::pe_server_version') {
     info('puppet_agent performs no actions on PE infrastructure nodes to prevent a mismatch between agent and PE components')
+
   } else {
     # In this code-path, $package_version != undef AND we are not on a PE infrastructure
     # node since $::pe_server_version is not defined
@@ -176,6 +182,8 @@ class puppet_agent (
     } else {
       $_package_version = $master_or_package_version
     }
+
+    notify {"puppet_agent - init - _package_version is set to ${_package_version}": }
 
     class { '::puppet_agent::prepare':
       package_version => $_package_version,
